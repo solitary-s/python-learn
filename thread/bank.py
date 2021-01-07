@@ -1,14 +1,19 @@
 from time import sleep
-from threading import Thread
+from threading import Thread, Lock
 
 class Account(object):
   def __init__(self):
     self._balance = 0
+    self._lock = Lock()
 
   def deposit(self, money):
-    new_balance = self._balance + money
-    sleep(0.01)
-    self._balance = new_balance
+    self._lock.acquire()
+    try:
+      new_balance = self._balance + money
+      sleep(0.01)
+      self._balance = new_balance
+    finally:
+      self._lock.release()
 
   @property
   def balance(self):
@@ -30,5 +35,12 @@ def main():
     t = AddMoneyThread(account, 1)
     threads.append(t)
     t.start()
+
+  for t in threads:
+    t.join()
+  print('账户的余额为：%s元' % account.balance)
+
+if __name__ == '__main__':
+  main()
   
   
